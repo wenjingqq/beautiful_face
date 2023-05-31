@@ -2,7 +2,6 @@ import os
 import sys
 import time
 
-import numpy as np
 import qtawesome
 from PyQt5.QtCore import QSize, QDir, QTimer, Qt
 from PyQt5.QtGui import QPainter, QPixmap, QImage
@@ -14,6 +13,10 @@ from PictureWindow203 import *
 from VideoWindow203 import *
 from CameraWindow203 import *
 from Buffing_Whitening203 import *
+from facelift_and_eye710 import *
+from lip_color_710 import *
+from nose_mag_710 import *
+from Color203 import *
 
 
 class myMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -95,7 +98,7 @@ class myPictureWindow(QtWidgets.QMainWindow, PictureWindow):
     # 美化界面
     def beautify_window(self):
         # 人像美容界面美化
-        self.resize(900, 850)
+        self.resize(750, 1000)
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.setIconSize(QSize(40, 40))
         win_icon = qtawesome.icon('fa5b.optin-monster', color='pink')  # 设置窗口图标
@@ -121,9 +124,15 @@ class myPictureWindow(QtWidgets.QMainWindow, PictureWindow):
         eye_icon = qtawesome.icon('ph.eye', color='white')  # 设置眼睛图标
         self.eye_pushButton.setIcon(eye_icon)
         self.eye_pushButton.setIconSize(QSize(40, 40))
-        meimao_icon = qtawesome.icon('ph.eye-closed-bold', color='white')  # 设置眉毛图标
+        meimao_icon = qtawesome.icon('mdi6.egg-easter', color='white')  # 设置鼻子图标
         self.meimao_pushButton.setIcon(meimao_icon)
         self.meimao_pushButton.setIconSize(QSize(40, 40))
+        saturation_icon = qtawesome.icon('ei.adjust', color='white')  # 设置饱和度图标
+        self.saturation_pushButton.setIcon(saturation_icon)
+        self.saturation_pushButton.setIconSize(QSize(40, 40))
+        light_icon = qtawesome.icon('mdi.sparkles', color='white')  # 设置亮度图标
+        self.light_pushButton.setIcon(light_icon)
+        self.light_pushButton.setIconSize(QSize(40,40))
         # 设置磨皮滚动条的范围、步长
         self.mopi_horizontalSlider.setMinimum(0)
         self.mopi_horizontalSlider.setMaximum(100)
@@ -136,6 +145,26 @@ class myPictureWindow(QtWidgets.QMainWindow, PictureWindow):
         self.eye_horizontalSlider.setMinimum(0)
         self.eye_horizontalSlider.setMaximum(100)
         self.eye_horizontalSlider.setSingleStep(1)
+        # 设置瘦脸滚动条范围、步长
+        self.shoulian_horizontalSlider.setMinimum(0)
+        self.shoulian_horizontalSlider.setMaximum(100)
+        self.shoulian_horizontalSlider.setSingleStep(1)
+        # 设置嘴唇滚动条范围、步长
+        self.mouth_horizontalSlider.setMinimum(0)
+        self.mouth_horizontalSlider.setMaximum(100)
+        self.mouth_horizontalSlider.setSingleStep(1)
+        # 设置鼻子滚动条范围、步长
+        self.meimao_horizontalSlider.setMinimum(0)
+        self.meimao_horizontalSlider.setMaximum(100)
+        self.meimao_horizontalSlider.setSingleStep(1)
+        # 设置饱和度滚动条范围、步长
+        self.saturation_horizontalSlider.setMinimum(-50)
+        self.saturation_horizontalSlider.setMaximum(50)
+        self.saturation_horizontalSlider.setSingleStep(1)
+        # 设置亮度滚动条范围、步长
+        self.light_horizontalSlider.setMinimum(-50)
+        self.light_horizontalSlider.setMaximum(50)
+        self.light_horizontalSlider.setSingleStep(1)
 
     # 关联组件和时间
     def relevancy(self):
@@ -144,6 +173,12 @@ class myPictureWindow(QtWidgets.QMainWindow, PictureWindow):
         self.actiondelete.triggered.connect(self.get_delete)  # 关联删除文件
         self.mopi_pushButton.clicked.connect(self.get_buffing)  # 关联磨皮
         self.meibai_pushButton.clicked.connect(self.get_whitening)  # 关联美白
+        self.shoulian_pushButton.clicked.connect(self.facelist)  # 关联瘦脸
+        self.eye_pushButton.clicked.connect(self.eye)  # 关联眼睛
+        self.mouth_pushButton.clicked.connect(self.lip)  # 关联红唇
+        self.meimao_pushButton.clicked.connect(self.nose)  # 关联鼻子
+        self.saturation_pushButton.clicked.connect(self.get_saturation)  # 关联饱和度
+        self.light_pushButton.clicked.connect(self.get_light)  # 关联亮度
 
     # 重写关闭按钮事件，关闭本窗口，返回主窗口
     def closeEvent(self, event):
@@ -200,8 +235,6 @@ class myPictureWindow(QtWidgets.QMainWindow, PictureWindow):
 
     # 磨皮
     def get_buffing(self):
-        # arr = np.fromfile(self.current_path, dtype=np.uint8)
-        # image = cv2.imdecode(arr, cv2.IMREAD_COLOR)  # 读取当前图片
         image = self.picture_label.pixmap().toImage()  # 获取界面展示图片
         image = self.qimage2mat(image)  # 将QImage图片转为MAT（BGRA）图片
         image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)  # 将BGRA图片转为BGR图片
@@ -218,8 +251,6 @@ class myPictureWindow(QtWidgets.QMainWindow, PictureWindow):
 
     # 美白
     def get_whitening(self):
-        # arr = np.fromfile(self.current_path, dtype=np.uint8)
-        # image = cv2.imdecode(arr, cv2.IMREAD_COLOR)  # 读取当前图片
         image = self.picture_label.pixmap().toImage()  # 获取界面展示图片
         image = self.qimage2mat(image)  # 将QImage图片转为MAT（BGRA）图片
         image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)  # 将BGRA图片转为BGR图片
@@ -228,6 +259,96 @@ class myPictureWindow(QtWidgets.QMainWindow, PictureWindow):
         # 视频流的长和宽
         height, width = img.shape[:2]
         pixmap = QImage(img.data, width, height, width*3, QImage.Format_RGB888)
+        # 自适应窗口大小
+        pixmap = QPixmap.fromImage(pixmap).scaled(self.picture_label.width(), self.picture_label.height())
+        self.picture_label.setPixmap(pixmap)
+        self.picture_label.setScaledContents(True)
+
+    # 瘦脸
+    def facelist(self):
+        image = self.picture_label.pixmap().toImage()  # 获取界面展示图片
+        image = self.qimage2mat(image)  # 将QImage图片转为MAT（BGRA）图片
+        image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)  # 将BGRA图片转为BGR图片
+        output = lift_picture_710(image, self.shoulian_horizontalSlider.value())  # 对图片进行瘦脸处理
+        img = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)  # 将图像转为灰度图像
+        # 视频流的长和宽
+        height, width = img.shape[:2]
+        pixmap = QImage(img.data, width, height, width * 3, QImage.Format_RGB888)
+        # 自适应窗口大小
+        pixmap = QPixmap.fromImage(pixmap).scaled(self.picture_label.width(), self.picture_label.height())
+        self.picture_label.setPixmap(pixmap)
+        self.picture_label.setScaledContents(True)
+
+    # 眼睛
+    def eye(self):
+        image = self.picture_label.pixmap().toImage()  # 获取界面展示图片
+        image = self.qimage2mat(image)  # 将QImage图片转为MAT（BGRA）图片
+        image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)  # 将BGRA图片转为BGR图片
+        output = picture_magnify_eye_710(image, self.eye_horizontalSlider.value())  # 对图片进行眼睛处理
+        img = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)  # 将图像转为灰度图像
+        # 视频流的长和宽
+        height, width = img.shape[:2]
+        pixmap = QImage(img.data, width, height, width * 3, QImage.Format_RGB888)
+        # 自适应窗口大小
+        pixmap = QPixmap.fromImage(pixmap).scaled(self.picture_label.width(), self.picture_label.height())
+        self.picture_label.setPixmap(pixmap)
+        self.picture_label.setScaledContents(True)
+
+    # 红唇
+    def lip(self):
+        image = self.picture_label.pixmap().toImage()  # 获取界面展示图片
+        image = self.qimage2mat(image)  # 将QImage图片转为MAT（BGRA）图片
+        image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)  # 将BGRA图片转为BGR图片
+        output = picture_lip_710(image, self.mouth_horizontalSlider.value())  # 对图片进行红唇处理
+        img = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)  # 将图像转为灰度图像
+        # 视频流的长和宽
+        height, width = img.shape[:2]
+        pixmap = QImage(img.data, width, height, width * 3, QImage.Format_RGB888)
+        # 自适应窗口大小
+        pixmap = QPixmap.fromImage(pixmap).scaled(self.picture_label.width(), self.picture_label.height())
+        self.picture_label.setPixmap(pixmap)
+        self.picture_label.setScaledContents(True)
+
+    # 鼻子
+    def nose(self):
+        image = self.picture_label.pixmap().toImage()  # 获取界面展示图片
+        image = self.qimage2mat(image)  # 将QImage图片转为MAT（BGRA）图片
+        image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)  # 将BGRA图片转为BGR图片
+        output = picture_nose_710(image, self.meimao_horizontalSlider.value())  # 对图片进行鼻子处理
+        img = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)  # 将图像转为灰度图像
+        # 视频流的长和宽
+        height, width = img.shape[:2]
+        pixmap = QImage(img.data, width, height, width * 3, QImage.Format_RGB888)
+        # 自适应窗口大小
+        pixmap = QPixmap.fromImage(pixmap).scaled(self.picture_label.width(), self.picture_label.height())
+        self.picture_label.setPixmap(pixmap)
+        self.picture_label.setScaledContents(True)
+
+    # 饱和度
+    def get_saturation(self):
+        image = self.picture_label.pixmap().toImage()  # 获取界面展示图片
+        image = self.qimage2mat(image)  # 将QImage图片转为MAT（BGRA）图片
+        image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)  # 将BGRA图片转为BGR图片
+        output = saturation(image, self.saturation_horizontalSlider.value())  # 对图片进行饱和度调整
+        img = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)  # 将图像转为灰度图像
+        # 视频流的长和宽
+        height, width = img.shape[:2]
+        pixmap = QImage(img.data, width, height, width * 3, QImage.Format_RGB888)
+        # 自适应窗口大小
+        pixmap = QPixmap.fromImage(pixmap).scaled(self.picture_label.width(), self.picture_label.height())
+        self.picture_label.setPixmap(pixmap)
+        self.picture_label.setScaledContents(True)
+
+    # 明度
+    def get_light(self):
+        image = self.picture_label.pixmap().toImage()  # 获取界面展示图片
+        image = self.qimage2mat(image)  # 将QImage图片转为MAT（BGRA）图片
+        image = cv2.cvtColor(image, cv2.COLOR_BGRA2BGR)  # 将BGRA图片转为BGR图片
+        output = darker(image, self.light_horizontalSlider.value())  # 对图片进行亮度调整
+        img = cv2.cvtColor(output, cv2.COLOR_BGR2RGB)  # 将图像转为灰度图像
+        # 视频流的长和宽
+        height, width = img.shape[:2]
+        pixmap = QImage(img.data, width, height, width * 3, QImage.Format_RGB888)
         # 自适应窗口大小
         pixmap = QPixmap.fromImage(pixmap).scaled(self.picture_label.width(), self.picture_label.height())
         self.picture_label.setPixmap(pixmap)
@@ -250,6 +371,9 @@ class myVideoWindow(QtWidgets.QMainWindow, VideoWindow):
         self.shoulian_flag = False
         self.eye_flag = False
         self.mouth_flag = False
+        self.nose_flag = False
+        self.saturation_flag = False
+        self.light_flag = False
         self.video = []  # 用于存储视频
 
         self.fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -267,21 +391,35 @@ class myVideoWindow(QtWidgets.QMainWindow, VideoWindow):
         # 关联组件和事件
         self.relevancy()
 
-        # 设置磨皮、美白、眼睛的滚动条范围和步长
+        # 设置磨皮滚动条范围和步长
         self.mopi_horizontalSlider.setMinimum(0)
         self.mopi_horizontalSlider.setMaximum(100)
         self.mopi_horizontalSlider.setSingleStep(1)
+        # 设置美白滚动条范围和步长
         self.meibai_horizontalSlider.setMinimum(0)
         self.meibai_horizontalSlider.setMaximum(40)
         self.meibai_horizontalSlider.setSingleStep(1)
+        # 设置眼睛滚动条范围和步长
         self.eye_horizontalSlider.setMinimum(0)
         self.eye_horizontalSlider.setMaximum(100)
         self.eye_horizontalSlider.setSingleStep(1)
+        # 设置鼻子滚动条范围、步长
+        self.meimao_horizontalSlider.setMinimum(0)
+        self.meimao_horizontalSlider.setMaximum(100)
+        self.meimao_horizontalSlider.setSingleStep(1)
+        # 设置饱和度滚动条范围、步长
+        self.saturation_horizontalSlider.setMinimum(-50)
+        self.saturation_horizontalSlider.setMaximum(50)
+        self.saturation_horizontalSlider.setSingleStep(1)
+        # 设置亮度滚动条范围、步长
+        self.light_horizontalSlider.setMinimum(-50)
+        self.light_horizontalSlider.setMaximum(50)
+        self.light_horizontalSlider.setSingleStep(1)
 
     # 美化界面
     def beautify_window(self):
         # 视频美容界面美化
-        self.resize(800, 750)
+        self.resize(750, 1000)
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.setIconSize(QSize(40, 40))
         win_icon = qtawesome.icon('fa5b.optin-monster', color='lightblue')  # 设置窗口图标
@@ -317,9 +455,15 @@ class myVideoWindow(QtWidgets.QMainWindow, VideoWindow):
         eye_icon = qtawesome.icon('ph.eye', color='pink')  # 设置眼睛图标
         self.eye_pushButton.setIcon(eye_icon)
         self.eye_pushButton.setIconSize(QSize(40, 40))
-        meimao_icon = qtawesome.icon('ph.eye-closed-bold', color='pink')  # 设置眉毛图标
+        meimao_icon = qtawesome.icon('mdi6.egg-easter', color='pink')  # 设置鼻子图标
         self.meimao_pushButton.setIcon(meimao_icon)
         self.meimao_pushButton.setIconSize(QSize(40, 40))
+        saturation_icon = qtawesome.icon('ei.adjust', color='pink')  # 设置饱和度图标
+        self.saturation_pushButton.setIcon(saturation_icon)
+        self.saturation_pushButton.setIconSize(QSize(40, 40))
+        light_icon = qtawesome.icon('mdi.sparkles', color='pink')  # 设置亮度图标
+        self.light_pushButton.setIcon(light_icon)
+        self.light_pushButton.setIconSize(QSize(40, 40))
 
     # 关联事件
     def relevancy(self):
@@ -354,6 +498,12 @@ class myVideoWindow(QtWidgets.QMainWindow, VideoWindow):
     def open_camera(self):
         self.mopi_flag = False
         self.meibai_flag = False
+        self.mouth_flag = False
+        self.eye_flag = False
+        self.shoulian_flag = False
+        self.nose_flag = False
+        self.saturation_flag = False
+        self.light_flag = False
         flag = self.cap.open(0, cv2.CAP_DSHOW)
         if not flag:
             QMessageBox.information(self, "警告", "该设备未正常连接", QMessageBox.Ok)
@@ -377,6 +527,12 @@ class myVideoWindow(QtWidgets.QMainWindow, VideoWindow):
         self.actionclose_L.setEnabled(True)  # 设置关闭视频按钮可用
         self.mopi_flag = False
         self.meibai_flag = False
+        self.mouth_flag = False
+        self.eye_flag = False
+        self.shoulian_flag = False
+        self.nose_flag = False
+        self.saturation_flag = False
+        self.light_flag = False
         flag = False  # 标记图片格式是否正确
         dig = QFileDialog()
         dig.setFileMode(QFileDialog.AnyFile)
@@ -459,6 +615,30 @@ class myVideoWindow(QtWidgets.QMainWindow, VideoWindow):
                 img = self.get_whitening(img)
             elif self.meibai_pushButton.isDown():
                 self.meibai_flag = True
+            if self.eye_flag:
+                img = self.eye(img)
+            elif self.eye_pushButton.isDown():
+                self.eye_flag = True
+            if self.shoulian_flag:
+                img = self.face(img)
+            elif self.shoulian_pushButton.isDown():
+                self.shoulian_flag = True
+            if self.mouth_flag:
+                img = self.lip(img)
+            elif self.mouth_pushButton.isDown():
+                self.mouth_flag = True
+            if self.nose_flag:
+                img = self.nose(img)
+            elif self.meimao_pushButton.isDown():
+                self.nose_flag = True
+            if self.saturation_flag:
+                img = self.get_saturation(img)
+            elif self.saturation_pushButton.isDown():
+                self.saturation_flag = True
+            if self.light_flag:
+                img = self.get_light(img)
+            elif self.light_pushButton.isDown():
+                self.light_flag = True
             self.video.append(img)  # 将当前帧存入video中
             cur_frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # 将图像转为灰度图像
             # 视频流的长和宽
@@ -473,14 +653,50 @@ class myVideoWindow(QtWidgets.QMainWindow, VideoWindow):
     # 磨皮
     def get_buffing(self, image):
         image = np.array(image, dtype=np.uint8)
-        output = Buffing_Whitening203.buffing(image, self.d, self.mopi_horizontalSlider.value(),
+        output = buffing(image, self.d, self.mopi_horizontalSlider.value(),
                                               self.mopi_horizontalSlider.value())
         return output
 
     # 美白
     def get_whitening(self, image):
         image = np.array(image, dtype=np.uint8)
-        output = Buffing_Whitening203.whitening(image,self.meibai_horizontalSlider.value())
+        output = whitening(image,self.meibai_horizontalSlider.value())
+        return output
+
+    # 瘦脸
+    def face(self,image):
+        image = np.array(image, dtype=np.uint8)
+        output = lift_picture_710(image,self.shoulian_horizontalSlider.value())
+        return output
+
+    # 眼睛
+    def eye(self, image):
+        image = np.array(image, dtype=np.uint8)
+        output = picture_magnify_eye_710(image, self.eye_horizontalSlider.value())
+        return output
+
+    # 红唇
+    def lip(self, image):
+        image = np.array(image, dtype=np.uint8)
+        output = picture_lip_710(image, self.hongchun_horizontalSlider.value())
+        return output
+
+    # 鼻子
+    def nose(self, image):
+        image = np.array(image, dtype=np.uint8)
+        output = picture_nose_710(image, self.meimao_horizontalSlider.value())
+        return output
+
+    # 饱和度
+    def get_saturation(self, image):
+        image = np.array(image, dtype=np.uint8)
+        output = saturation(image, self.saturation_horizontalSlider.value())
+        return output
+
+    # 亮度
+    def get_light(self, image):
+        image = np.array(image, dtype=np.uint8)
+        output = darker(image, self.light_horizontalSlider.value())
         return output
 
 
@@ -512,7 +728,7 @@ class myCameraWindow(QtWidgets.QMainWindow, CameraWindow):
 
     # 美化界面
     def beautify_window(self):
-        self.resize(900, 850)
+        self.resize(750, 1000)
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.setIconSize(QSize(40, 40))
         win_icon = qtawesome.icon('fa5b.optin-monster', color='orange')  # 设置窗口图标
