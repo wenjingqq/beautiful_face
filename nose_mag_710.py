@@ -1,4 +1,7 @@
-
+'''
+2023年5月31日  屈雯静
+对人脸的鼻子通过参数进行缩小处理
+'''
 import math
 import cv2
 import imutils
